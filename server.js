@@ -118,6 +118,42 @@ app.get("/", (_req, res) =>
   </script>
 `)
 );
+// ---- ONE-TIME DB INIT ENDPOINT ----
+import { pool } from "./usage.js";
+
+const SCHEMA_SQL = `
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text UNIQUE NOT NULL,
+  plan text NOT NULL DEFAULT 'free',
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS daily_usage (
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  usage_date date NOT NULL,
+  messages_used int NOT NULL DEFAULT 0,
+  uploads_used int NOT NULL DEFAULT 0,
+  call_seconds_used int NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, usage_date)
+);
+`;
+
+app.post("/admin/init-db", async (req, res) => {
+  // simple guard so randoms can’t run it:
+  if ((req.query.token || "") !== (process.env.ADMIN_INIT_TOKEN || "")) {
+    return res.status(403).json({ error: "forbidden" });
+  }
+  try {
+    await pool.query(SCHEMA_SQL);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+// ---- END ONE-TIME DB INIT ----
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => console.log("Listening on " + port));
