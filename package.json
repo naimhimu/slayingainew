@@ -1,0 +1,19 @@
+{
+  "name": "slayingai-groq-backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "luxon": "3.5.0",
+    "pg": "8.12.0"
+  }
+}
